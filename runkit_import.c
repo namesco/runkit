@@ -21,6 +21,16 @@
 
 #include "php_runkit.h"
 
+#ifndef IS_CONSTANT_AST
+#define IS_CONSTANT_AST IS_CONSTANT_ARRAY
+#endif
+
+#if PHP_VERSION_ID < 50600
+#define _CONSTANT_INDEX(a) (void*) a
+#else
+#define _CONSTANT_INDEX(a) a
+#endif
+
 #ifdef PHP_RUNKIT_MANIPULATION
 /* {{{ php_runkit_import_functions
  */
@@ -222,8 +232,8 @@ static int php_runkit_import_class_consts(zend_class_entry *dce, zend_class_entr
 				|| (Z_TYPE_PP(c) & IS_CONSTANT_TYPE_MASK) == IS_CONSTANT
 #endif
 			) {
-#if RUNKIT_ABOVE56
-				zval_update_constant_ex(c, 1, dce TSRMLS_CC);
+#if PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 2 || PHP_MAJOR_VERSION > 5
+				zval_update_constant_ex(c, _CONSTANT_INDEX(1), dce TSRMLS_CC);
 #else
 				zval_update_constant_ex(c, (void*) 1, dce TSRMLS_CC);
 #endif
@@ -286,8 +296,8 @@ static int php_runkit_import_class_static_props(zend_class_entry *dce, zend_clas
 						php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to import %s::$%s (cannot remove old member)", dce->name, key);
 						goto import_st_prop_skip;
 					}
-#if RUNKIT_ABOVE56
-					zval_update_constant(pp, (long) dce TSRMLS_CC);
+#if PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 2 || PHP_MAJOR_VERSION > 5					
+					zval_update_constant_ex(pp, _CONSTANT_INDEX(1), dce TSRMLS_CC);
 #else
 					zval_update_constant(pp, dce TSRMLS_CC);
 #endif
@@ -363,8 +373,8 @@ static int php_runkit_import_class_props(zend_class_entry *dce, zend_class_entry
 				|| (Z_TYPE_PP(p) & IS_CONSTANT_TYPE_MASK) == IS_CONSTANT
 #endif // RUNKIT_ABOVE53
 			) {
-#if RUNKIT_ABOVE56
-				zval_update_constant_ex(p, 1, dce TSRMLS_CC);
+#if PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 2 || PHP_MAJOR_VERSION > 5
+				zval_update_constant_ex(p, _CONSTANT_INDEX(1), dce TSRMLS_CC);
 #else
 				zval_update_constant_ex(p, (void*) 1, dce TSRMLS_CC);
 #endif
