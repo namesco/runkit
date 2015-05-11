@@ -499,13 +499,17 @@ static int php_runkit_def_prop_add(char *classname, int classname_len, char *pro
 		return FAILURE;
 	}
 	if (
-	    Z_TYPE_P(copyval) == IS_CONSTANT_ARRAY
+	    Z_TYPE_P(copyval) == IS_CONSTANT_AST
 #	if RUNKIT_ABOVE53
 	    || (Z_TYPE_P(copyval) & IS_CONSTANT_TYPE_MASK) == IS_CONSTANT
 #	endif
 	) {
-#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 2) || (PHP_MAJOR_VERSION > 5)
+#   if RUNKIT_ABOVE56
+		zval_update_constant_ex(&copyval, 1, ce TSRMLS_CC);
+#   else
 		zval_update_constant_ex(&copyval, (void*) 1, ce TSRMLS_CC);
+#   endif
+	}
 #else
 		zval_update_constant(&copyval, ce TSRMLS_CC);
 #endif

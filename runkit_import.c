@@ -217,15 +217,15 @@ static int php_runkit_import_class_consts(zend_class_entry *dce, zend_class_entr
 				}
 			}
 			if (
-				Z_TYPE_PP(c) == IS_CONSTANT_ARRAY
+				Z_TYPE_PP(c) == IS_CONSTANT_AST
 #if RUNKIT_ABOVE53
 				|| (Z_TYPE_PP(c) & IS_CONSTANT_TYPE_MASK) == IS_CONSTANT
 #endif
 			) {
-#if PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 2 || PHP_MAJOR_VERSION > 5
-				zval_update_constant_ex(c, (void*) 1, dce TSRMLS_CC);
+#if RUNKIT_ABOVE56
+				zval_update_constant_ex(c, 1, dce TSRMLS_CC);
 #else
-				zval_update_constant(c, dce TSRMLS_CC);
+				zval_update_constant_ex(c, (void*) 1, dce TSRMLS_CC);
 #endif
 			}
 			Z_ADDREF_P(*c);
@@ -268,7 +268,7 @@ static int php_runkit_import_class_static_props(zend_class_entry *dce, zend_clas
 #else
 			zend_hash_quick_find(CE_STATIC_MEMBERS(ce), property_info_ptr->name, property_info_ptr->name_length + 1, property_info_ptr->h, (void*) &pp);
 			if (
-				Z_TYPE_PP(pp) == IS_CONSTANT_ARRAY
+				Z_TYPE_PP(pp) == IS_CONSTANT_AST
 #if RUNKIT_ABOVE53
 				|| (Z_TYPE_PP(pp) & IS_CONSTANT_TYPE_MASK) == IS_CONSTANT
 #endif // RUNKIT_ABOVE53
@@ -286,7 +286,11 @@ static int php_runkit_import_class_static_props(zend_class_entry *dce, zend_clas
 						php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to import %s::$%s (cannot remove old member)", dce->name, key);
 						goto import_st_prop_skip;
 					}
+#if RUNKIT_ABOVE56
+					zval_update_constant(pp, (long) dce TSRMLS_CC);
+#else
 					zval_update_constant(pp, dce TSRMLS_CC);
+#endif
 					if (php_runkit_def_prop_add_int(dce, key, key_len - 1, *pp, property_info_ptr->flags,
 					                                property_info_ptr->doc_comment,
 					                                property_info_ptr->doc_comment_len, dce,
@@ -354,15 +358,15 @@ static int php_runkit_import_class_props(zend_class_entry *dce, zend_class_entry
 			}
 #endif // (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 4) || (PHP_MAJOR_VERSION > 5)
 			if (
-				Z_TYPE_PP(p) == IS_CONSTANT_ARRAY
+				Z_TYPE_PP(p) == IS_CONSTANT_AST
 #if RUNKIT_ABOVE53
 				|| (Z_TYPE_PP(p) & IS_CONSTANT_TYPE_MASK) == IS_CONSTANT
 #endif // RUNKIT_ABOVE53
 			) {
-#if PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 2 || PHP_MAJOR_VERSION > 5
-				zval_update_constant_ex(p, (void*) 1, dce TSRMLS_CC);
+#if RUNKIT_ABOVE56
+				zval_update_constant_ex(p, 1, dce TSRMLS_CC);
 #else
-				zval_update_constant(p, dce TSRMLS_CC);
+				zval_update_constant_ex(p, (void*) 1, dce TSRMLS_CC);
 #endif
 			}
 
